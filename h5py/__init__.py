@@ -37,7 +37,7 @@ if version.hdf5_version_tuple != version.hdf5_built_version_tuple:
            "this may cause problems").format(
             '{0}.{1}.{2}'.format(*version.hdf5_version_tuple),
             '{0}.{1}.{2}'.format(*version.hdf5_built_version_tuple)
-    ))
+    ), stacklevel=2)
 
 
 _errors.silence_errors()
