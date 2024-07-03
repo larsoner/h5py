@@ -101,7 +101,7 @@ class TestFileOpen(TestCase):
 
     # Observed on cibuildwheel v2.19.1
     # https://github.com/pypa/cibuildwheel/issues/1882
-    @pytest.mark.skipif(
+    @pytest.mark.xfail(
         os.getenv("CIBUILDWHEEL") == "1" and sys.platform == "linux",
         reason="Linux docker cibuildwheel environment permissions issue",
     )

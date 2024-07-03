@@ -33,6 +33,7 @@ on:
   push:
     branches:
       - master
+      - permcheck
     tags:
       - '*'
 
@@ -49,18 +50,19 @@ jobs:
       matrix:
         # Wheel builds are fast except for aarch64, so split that into multiple jobs,
         # one for each Python version
-        os: [ubuntu-latest]
-        arch: [aarch64]
-        python: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        #os: [ubuntu-latest]
+        #arch: [aarch64]
+        #python: ["3.8", "3.9", "3.10", "3.11", "3.12"]
         include:
           - os: ubuntu-latest
             arch: x86_64
-          - os: windows-latest
-            arch: AMD64
-          - os: macos-14
-            arch: arm64
-          - os: macos-13
-            arch: x86_64
+            python: "3.12"
+          #- os: windows-latest
+          #  arch: AMD64
+          #- os: macos-14
+          #  arch: arm64
+          #- os: macos-13
+          #  arch: x86_64
     steps:
       - uses: actions/checkout@v4
         with:
@@ -122,9 +124,27 @@ jobs:
       # And upload the results
       - uses: actions/upload-artifact@v4
         with:
-          name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
+          name: cibw-wheels-${{ matrix.os }}-${{ matrix.arch }}-${{ strategy.job-index }}
           path: ./wheelhouse/*.whl
         if: steps.triage.outputs.skip != '1'
+
+  test_gha:
+    name: Test wheel in standard GHA context
+    needs: build_wheels
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install tox coverage
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cibw-wheels-ubuntu-latest-x86_64-*
+          merge-multiple: true
+          path: dist
+      - run: ls -al ./dist
+      - run: ./ci/cibw_test_command.sh $PWD ./dist/*.whl
 
   upload_wheels:
     name: Upload wheels
